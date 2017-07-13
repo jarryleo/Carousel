@@ -3,6 +3,7 @@ package cn.leo.carousel;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.widget.ImageView;
+import android.widget.Toast;
 
 import com.bumptech.glide.Glide;
 
@@ -38,5 +39,12 @@ public class MainActivity extends AppCompatActivity {
         }).setImageList(imageList);
         //轮播图指示器控件，绑定ViewPager即可，如果是循环的根据循环方式选择参数
         viewPagerPoint.attachViewPager(carouselView.getViewPager(), imageList.size());
+
+        carouselView.setOnPageClickListener(new CarouselView.OnPageClickListener() {
+            @Override
+            public void onClick(int index, String imagePath) {
+                Toast.makeText(MainActivity.this, "点击" + index, Toast.LENGTH_SHORT).show();
+            }
+        });
     }
 }

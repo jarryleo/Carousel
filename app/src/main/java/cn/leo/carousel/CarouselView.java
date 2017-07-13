@@ -6,6 +6,7 @@ import android.os.Looper;
 import android.support.v4.view.PagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.util.AttributeSet;
+import android.view.GestureDetector;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
@@ -18,7 +19,7 @@ import java.util.List;
  * Created by Leo on 2017/7/12.
  */
 
-public class CarouselView extends FrameLayout {
+public class CarouselView extends FrameLayout implements ViewPager.OnPageChangeListener {
     private List<String> mImageList;
     private innerViewPager mViewPager;
     private ImageAdapter mAdapter;
@@ -27,6 +28,7 @@ public class CarouselView extends FrameLayout {
     private Handler mHandler;
     private int mScrollInterval = 3000; //自动轮播间隔3秒
     private int mCurrentItem;
+    private OnPageClickListener mOnPageClickListener;
 
     public CarouselView(Context context) {
         this(context, null);
@@ -63,6 +65,7 @@ public class CarouselView extends FrameLayout {
             mViewPager.setAdapter(mAdapter);
             mCurrentItem = mImageList.size() * 50000;
             mViewPager.setCurrentItem(mCurrentItem);
+            mViewPager.addOnPageChangeListener(this);
             mHandler = new Handler(Looper.getMainLooper());
         } else {
             mAdapter.notifyDataSetChanged();
@@ -74,6 +77,10 @@ public class CarouselView extends FrameLayout {
 
     public ViewPager getViewPager() {
         return mViewPager;
+    }
+
+    public void setOnPageClickListener(OnPageClickListener onPageClickListener) {
+        mOnPageClickListener = onPageClickListener;
     }
 
     /**
@@ -119,6 +126,22 @@ public class CarouselView extends FrameLayout {
         }
     };
 
+    @Override
+    public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {
+
+    }
+
+    @Override
+    public void onPageSelected(int position) {
+        mCurrentItem = position;
+    }
+
+    @Override
+    public void onPageScrollStateChanged(int state) {
+
+    }
+
+
     private class ImageAdapter extends PagerAdapter {
 
         @Override
@@ -160,6 +183,17 @@ public class CarouselView extends FrameLayout {
     }
 
     private class innerViewPager extends ViewPager {
+        private GestureDetector mGestureDetector =
+                new GestureDetector(getContext(),
+                        new GestureDetector.SimpleOnGestureListener() {
+                            @Override
+                            public boolean onSingleTapUp(MotionEvent e) {
+                                if (mOnPageClickListener == null) return false;
+                                int index = mCurrentItem % mImageList.size();
+                                mOnPageClickListener.onClick(index, mImageList.get(index));
+                                return true;
+                            }
+                        });
 
         public innerViewPager(Context context) {
             this(context, null);
@@ -183,6 +217,7 @@ public class CarouselView extends FrameLayout {
                     autoScroll();
                     break;
             }
+            mGestureDetector.onTouchEvent(ev);
             return super.onTouchEvent(ev);
         }
     }
@@ -193,5 +228,9 @@ public class CarouselView extends FrameLayout {
      */
     public interface ImageLoader {
         void loadImage(ImageView imageView, String imagePath);
+    }
+
+    public interface OnPageClickListener {
+        void onClick(int index, String imagePath);
     }
 }
